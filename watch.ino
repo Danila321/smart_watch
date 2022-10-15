@@ -20,6 +20,9 @@
 #include "bluetooth_icon.h"
 #include "gallery_icon.h"
 #include "text_icon.h"
+#include "battery_icon.h"
+#include "theme_icon.h"
+#include "version_icon.h"
 
 //TFT_DC            2
 //TFT_RES           4
@@ -186,12 +189,12 @@ void settings(int btn1, int btn2, char *arr[], int arrSize) {   //пункт н�
   canPushBackFunc();
 
   if (drawState) {   //прорисовка
-    writePoints(arr, arrSize, 1);   //выводим пункты
+    writePointsSettings(arr, arrSize, 1);   //выводим пункты
     writeCursor(arr, firstToBackL2);   //выводим курсор
     drawState = false;
   }
 
-  encMove(arr, arrSize);
+  encMoveSettings(arr, arrSize);
 
   //проверяем позицию курсора и переходим на следующий(при нажатии на кнопку)
   if (digitalRead(btn1) == HIGH  && canPush) {
@@ -206,7 +209,7 @@ void settings(int btn1, int btn2, char *arr[], int arrSize) {   //пункт н�
       case 1:
         while (!(digitalRead(button2) == HIGH && canPushBack)) {
           canPushBackFunc();
-          writeTitle("Version", 2);
+          writeTitle("Version: 1.3.7", 2);
         }
         break;
       case 2:
@@ -352,6 +355,36 @@ void encMove(char *arr[], int arrSize) {     //перемещение курсо
   }
 }
 
+void encMoveSettings(char *arr[], int arrSize) {     //перемещение курсора
+  if (enc.isLeft()) {
+    arrPos = arrPos - 1;
+    if (arrPos >= 1) {
+      lcd.fillScreen(BLACK);
+      writePointsSettings(arr, arrSize, 1);   //выводим пункты
+      writeCursor(arr, arrPos);   //выводим курсор
+      Serial.println("left");
+      Serial.println(arrPos);
+    } else {
+      arrPos = arrPos + 1;
+      Serial.println("stop");
+      Serial.println(arrPos);
+    }
+  } if (enc.isRight()) {
+    arrPos = arrPos + 1;
+    if (arrPos <= arrSize) {
+      lcd.fillScreen(BLACK);
+      writePointsSettings(arr, arrSize, 1);   //выводим пункты
+      writeCursor(arr, arrPos);   //выводим курсор
+      Serial.println("right");
+      Serial.println(arrPos);
+    } else {
+      arrPos = arrPos - 1;
+      Serial.println("stop");
+      Serial.println(arrPos);
+    }
+  }
+}
+
 
 void writePoints (char *arrText[], int arrSize, int textSize) {
   lcd.setTextColor(WHITE, BLACK);
@@ -359,18 +392,31 @@ void writePoints (char *arrText[], int arrSize, int textSize) {
   uint16_t w = 26, h = 26;
   for (int i = 1; i <= arrSize; i++) {
     if (i <= 3) {
-      writePointsImages(w, h, i, 30);
+      mainImages(w, h, i, 30);
       lcd.setCursor(12 + 72 * (i - 1) + (72 / 2 - round(strlen(arrText[i - 1])) / 2 - 20), 56);
       lcd.print(arrText[i - 1]);
     } else {
-      writePointsImages(w, h, i, 96);
+      mainImages(w, h, i, 96);
       lcd.setCursor(12 + 72 * (i - 4) + (72 / 2 - round(strlen(arrText[i - 1])) / 2 - 20), 122);
       lcd.print(arrText[i - 1]);
     }
   }
 }
 
-void writePointsImages(uint16_t w, uint16_t h, int i, int height) {
+void writePointsSettings (char *arrText[], int arrSize, int textSize) {
+  lcd.setTextColor(WHITE, BLACK);
+  lcd.setTextSize(textSize);
+  uint16_t w = 26, h = 26;
+  for (int i = 1; i <= arrSize; i++) {
+    if (i <= 3) {
+      settingsImages(w, h, i, 30);
+      lcd.setCursor(12 + 72 * (i - 1) + (72 / 2 - round(strlen(arrText[i - 1])) / 2 - 20), 56);
+      lcd.print(arrText[i - 1]);
+    }
+  }
+}
+
+void mainImages(uint16_t w, uint16_t h, int i, int height) {   //выборка изображения меню
   switch (i) {
     case 1:
       TJpgDec.getJpgSize(&w, &h, settings_icon, sizeof(settings_icon));
@@ -389,8 +435,25 @@ void writePointsImages(uint16_t w, uint16_t h, int i, int height) {
       TJpgDec.drawJpg(12 + 72 * 0 + (72 / 2 - w / 2), height, gallery_icon, sizeof(gallery_icon));
       break;
     case 5:
-      TJpgDec.getJpgSize(&w, &h, gallery_icon, sizeof(gallery_icon));
+      TJpgDec.getJpgSize(&w, &h, text_icon, sizeof(text_icon));
       TJpgDec.drawJpg(12 + 72 * 1 + (72 / 2 - w / 2), height, text_icon, sizeof(text_icon));
+      break;
+  }
+}
+
+void settingsImages(uint16_t w, uint16_t h, int i, int height) {   //выборка изображения меню настроек
+  switch (i) {
+    case 1:
+      TJpgDec.getJpgSize(&w, &h, version_icon, sizeof(version_icon));
+      TJpgDec.drawJpg(12 + 72 * 0 + (72 / 2 - w / 2), height, version_icon, sizeof(version_icon));
+      break;
+    case 2:
+      TJpgDec.getJpgSize(&w, &h, theme_icon, sizeof(theme_icon));
+      TJpgDec.drawJpg(12 + 72 * 1 + (72 / 2 - w / 2), height, theme_icon, sizeof(theme_icon));
+      break;
+    case 3:
+      TJpgDec.getJpgSize(&w, &h, battery_icon, sizeof(battery_icon));
+      TJpgDec.drawJpg(12 + 72 * 2 + (72 / 2 - w / 2), height, battery_icon, sizeof(battery_icon));
       break;
   }
 }
